@@ -1,0 +1,17 @@
+.bounding-box {
+	position: absolute;
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
+	display: -o-flex;
+	display: flex;
+	-webkit-flex-wrap: wrap;
+	-moz-flex-wrap: wrap;
+	-ms-flex-wrap: wrap;
+	-o-flex-wrap: wrap;
+	flex-wrap: wrap;
+	justify-content: center;
+	cursor: pointer;
+	-webkit-box-shadow: 0 0 0 3px #149df2 inset;
+	box-shadow: 0 0 0 3px #149df2 inset;
+}

@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import Clarifai from 'clarifai';
 import Particles from 'react-particles-js';
 import Navigation from './components/Navigation/Navigation';
+import SignIn from './components/SignIn/SignIn';
+import Register from './components/Register/Register';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
 import Logo from './components/Logo/Logo';
 import Rank from './components/Rank/Rank';
@@ -90,11 +92,29 @@ class App extends Component {
     this.state = {
       input: '',
       imageUrl: '',
+      box: {},
+      route: 'signIn',
+      isSignedIn: false
     }
   }
 
   onInputChange = (event) => {
     this.setState({ input: event.target.value });
+  }
+
+  calculateFaceLocation = (data) => {
+    const clarifaiFaces = data.outputs[0].data.regions[0].region_info.bounding_box;
+    return {
+      leftCol: clarifaiFaces.left_col * 100 + '%',
+      topRow: clarifaiFaces.top_row * 100 + '%',
+      rightCol: 100 - clarifaiFaces.right_col * 100 + '%',
+      bottomRow: 100 - clarifaiFaces.bottom_row * 100 + '%'
+    }
+  }
+
+  displayFaceBox = (box) => {
+    console.log(box);
+    this.setState({ box: box });
   }
 
   onButtonSubmit = () => {
@@ -104,30 +124,47 @@ class App extends Component {
         Clarifai.FACE_DETECT_MODEL,
         this.state.input
       )
-      .then(function(response) {
-          console.log(response.outputs[0].data.regions[0].region_info.bounding_box);
-        },
-        function(err) {
-        // there was an error
-        }
-      );
+      .then(response => {
+        console.log(response);
+        return this.displayFaceBox(this.calculateFaceLocation(response));
+      })
+      .catch(error => console.log(error));
+  }
+
+  onRouteChange = (route) => {
+    if(route === 'signOut')
+      this.setState({ isSignedIn: false });
+    else if(route === 'home')
+      this.setState({ isSignedIn: true });
+    
+    this.setState({ route: route })
   }
 
   render() {
+    const { isSignedIn, imageUrl, route, box } = this.state;
     return (
       <div className="App">
         <Particles
           className='particles'
           params={ particlesOptions }
         />
-        <Navigation />
-        <Logo />
-        <Rank />
-        <ImageLinkForm
-          onInputChange={ this.onInputChange }
-          onButtonSubmit={ this.onButtonSubmit }
-        />
-        <FaceRecognition imageUrl={ this.state.imageUrl } />
+        <Navigation isSignedIn={ isSignedIn } onRouteChange={ this.onRouteChange } />
+        { route === 'home'
+          ? <div>
+              <Logo />
+              <Rank />
+              <ImageLinkForm
+                onInputChange={ this.onInputChange }
+                onButtonSubmit={ this.onButtonSubmit }
+              />
+              <FaceRecognition box={ box } imageUrl={ imageUrl } />
+            </div>
+          : (
+              route === 'register'
+              ? <Register onRouteChange={ this.onRouteChange } />
+              : <SignIn onRouteChange={ this.onRouteChange } />
+            )
+        }
       </div>
     );
   }
